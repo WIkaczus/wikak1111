@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odtwarzacz Muzyki Spotify</title>
+    <style>
+        body {
+            background-color: #1DB954; /* Zielony kolor Spotify */
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #191414; /* Ciemny kolor */
+            width: 80%;
+            max-width: 600px;
+        }
+
+        input {
+            width: 70%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #1DB954;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1ed760;
+        }
+
+        #player {
+            margin-top: 20px;
+        }
+
+        #trackInfo {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎶 Odtwarzacz Muzyki Spotify 🎶</h1>
+        <input type="text" id="spotifyLink" placeholder="Wklej link do utworu lub playlisty Spotify">
+        <button id="playButton">Odtwórz</button>
+        <div id="player"></div>
+        <div id="trackInfo"></div>
+    </div>
+
+    <script>
+        document.getElementById('playButton').addEventListener('click', function() {
+            const link = document.getElementById('spotifyLink').value;
+            const playerDiv = document.getElementById('player');
+            const trackInfoDiv = document.getElementById('trackInfo');
+
+            if (link.includes('track')) {
+                const trackId = link.split('/').pop().split('?')[0]; // Wyciągnięcie ID utworu
+                playerDiv.innerHTML = `<iframe src="https://open.spotify.com/embed/track/${trackId}" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+                
+                // Zmienna do przechowywania informacji o utworze
+                fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer YOUR_ACCESS_TOKEN' // Wstaw swój token dostępu
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    trackInfoDiv.innerHTML = `
+                        <strong>Nazwa utworu:</strong> ${data.name}<br>
+                        <strong>Artysta:</strong> ${data.artists.map(artist => artist.name).join(', ')}<br>
+                        <strong>Album:</strong> ${data.album.name}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Błąd:', error);
+                    trackInfoDiv.innerHTML = 'Nie udało się pobrać informacji o utworze.';
+                });
+
+            } else if (link.includes('playlist')) {
+                const playlistId = link.split('/').pop().split('?')[0]; // Wyciągnięcie ID playlisty
+                playerDiv.innerHTML = `<iframe src="https://open.spotify.com/embed/playlist/${playlistId}" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+                trackInfoDiv.innerHTML = `<strong>Odtwarzanie playlisty...</strong>`;
+            } else {
+                alert('Proszę wprowadzić poprawny link do utworu lub playlisty Spotify.');
+            }
+        });
+    </script>
+</body>
+</html>
